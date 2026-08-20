@@ -1,242 +1,819 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Tablas de Multiplicar (1 al 5)</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MultipliKids ⚡</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    :root {
+        --green: #58cc02;
+        --green-dark: #46a302;
+        --blue: #1cb0f6;
+        --yellow: #ffc800;
+        --red: #ff4b4b;
+        --purple: #ce82ff;
+        --bg: #f7f7f7;
+        --text: #3c3c3c;
+        --border: #dedede;
+    }
+
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+    }
+
+    .app {
+        max-width: 700px;
+        margin: auto;
+        min-height: 100vh;
+        background: white;
+    }
+
+    /* HEADER */
+
+    header {
+        padding: 18px 22px;
+        border-bottom: 2px solid #eee;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+    }
+
+    .stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+
+    .stat {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 15px;
+    }
+
+    .xp {
+        color: var(--yellow);
+    }
+
+    .streak {
+        color: #ff9600;
+    }
+
+    .hearts {
+        color: var(--red);
+    }
+
+    .progress-container {
+        width: 100%;
+        height: 14px;
+        background: #e5e5e5;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .progress {
+        height: 100%;
+        width: 0%;
+        background: var(--green);
+        border-radius: 20px;
+        transition: width .4s ease;
+    }
+
+    /* GAME */
+
+    .game {
+        padding: 35px 25px;
+        text-align: center;
+    }
+
+    .level {
+        display: inline-block;
+        background: #e9f9df;
+        color: var(--green-dark);
+        padding: 7px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        margin-bottom: 25px;
+    }
+
+    h1 {
+        font-size: 30px;
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        color: #777;
+        margin-bottom: 35px;
+    }
+
+    .question {
+        font-size: 65px;
+        font-weight: 800;
+        margin: 25px 0 35px;
+        color: #303030;
+    }
+
+    /* ANSWERS */
+
+    .answers {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        max-width: 500px;
+        margin: auto;
+    }
+
+    .answer {
+        background: white;
+        border: 2px solid var(--border);
+        border-bottom: 5px solid #cfcfcf;
+        border-radius: 14px;
+        padding: 18px;
+        font-size: 25px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: .15s;
+        color: var(--text);
+    }
+
+    .answer:hover {
+        transform: translateY(-2px);
+        border-color: var(--blue);
+    }
+
+    .answer:active {
+        transform: translateY(3px);
+        border-bottom-width: 2px;
+    }
+
+    .answer.correct {
+        background: #d7ffb8;
+        border-color: var(--green);
+        color: var(--green-dark);
+    }
+
+    .answer.wrong {
+        background: #ffdfe0;
+        border-color: var(--red);
+        color: #d92727;
+        animation: shake .3s;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-8px); }
+        75% { transform: translateX(8px); }
+    }
+
+    /* FEEDBACK */
+
+    .feedback {
+        margin: 25px auto 0;
+        padding: 15px;
+        border-radius: 12px;
+        max-width: 500px;
+        display: none;
+        font-weight: bold;
+    }
+
+    .feedback.show {
+        display: block;
+    }
+
+    .feedback.good {
+        background: #d7ffb8;
+        color: #318500;
+    }
+
+    .feedback.bad {
+        background: #ffdfe0;
+        color: #d92727;
+    }
+
+    /* BUTTON */
+
+    .continue {
+        display: none;
+        width: 100%;
+        max-width: 500px;
+        margin: 20px auto 0;
+        padding: 16px;
+        border: none;
+        border-radius: 14px;
+        background: var(--green);
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 5px 0 var(--green-dark);
+    }
+
+    .continue:hover {
+        background: #61d609;
+    }
+
+    .continue:active {
+        transform: translateY(4px);
+        box-shadow: 0 1px 0 var(--green-dark);
+    }
+
+    /* START SCREEN */
+
+    .start-screen {
+        text-align: center;
+        padding: 60px 25px;
+    }
+
+    .logo {
+        font-size: 70px;
+        margin-bottom: 15px;
+    }
+
+    .start-screen h1 {
+        font-size: 40px;
+        color: var(--green);
+    }
+
+    .start-screen p {
+        margin: 15px auto 30px;
+        max-width: 450px;
+        color: #777;
+        line-height: 1.5;
+    }
+
+    .table-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        max-width: 500px;
+        margin: 25px auto;
+    }
+
+    .table-btn {
+        width: 58px;
+        height: 58px;
+        border-radius: 15px;
+        border: 2px solid #ddd;
+        background: white;
+        font-weight: bold;
+        font-size: 18px;
+        cursor: pointer;
+        border-bottom-width: 5px;
+    }
+
+    .table-btn:hover {
+        border-color: var(--blue);
+        color: var(--blue);
+    }
+
+    .table-btn.selected {
+        background: var(--blue);
+        color: white;
+        border-color: #1594d0;
+    }
+
+    .start-btn {
+        margin-top: 20px;
+        border: none;
+        padding: 17px 50px;
+        border-radius: 15px;
+        background: var(--green);
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 5px 0 var(--green-dark);
+    }
+
+    .start-btn:active {
+        transform: translateY(4px);
+        box-shadow: 0 1px 0 var(--green-dark);
+    }
+
+    /* RESULT */
+
+    .result {
+        display: none;
+        text-align: center;
+        padding: 50px 25px;
+    }
+
+    .result.show {
+        display: block;
+    }
+
+    .trophy {
+        font-size: 90px;
+        animation: bounce 1s infinite alternate;
+    }
+
+    @keyframes bounce {
+        from { transform: translateY(0); }
+        to { transform: translateY(-15px); }
+    }
+
+    .result h2 {
+        font-size: 32px;
+        margin: 20px 0 10px;
+    }
+
+    .result-score {
+        font-size: 45px;
+        font-weight: bold;
+        color: var(--green);
+        margin: 20px;
+    }
+
+    .result-info {
+        color: #777;
+        line-height: 1.8;
+    }
+
+    .restart {
+        margin-top: 25px;
+        padding: 15px 35px;
+        border: none;
+        border-radius: 14px;
+        background: var(--blue);
+        color: white;
+        font-weight: bold;
+        font-size: 17px;
+        cursor: pointer;
+        box-shadow: 0 4px 0 #1594d0;
+    }
+
+    /* XP ANIMATION */
+
+    .xp-popup {
+        position: fixed;
+        left: 50%;
+        top: 45%;
+        transform: translate(-50%, -50%);
+        color: var(--yellow);
+        font-size: 35px;
+        font-weight: bold;
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    .xp-popup.animate {
+        animation: xpUp .8s ease-out;
+    }
+
+    @keyframes xpUp {
+        0% {
+            opacity: 0;
+            transform: translate(-50%, 0) scale(.5);
+        }
+        30% {
+            opacity: 1;
+            transform: translate(-50%, -30px) scale(1.2);
+        }
+        100% {
+            opacity: 0;
+            transform: translate(-50%, -100px) scale(1);
+        }
+    }
+
+    @media(max-width: 500px) {
+        .question {
+            font-size: 50px;
         }
 
-        body {
-            background-color: #f0f4f8;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 1rem;
+        .answer {
+            font-size: 21px;
+            padding: 15px;
         }
 
-        .quiz-card {
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            max-width: 450px;
-            width: 100%;
-            text-align: center;
+        .stats {
+            font-size: 13px;
         }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-            font-weight: bold;
-            color: #555;
-        }
-
-        .question-box {
-            background: #eef2f5;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .question-text {
-            font-size: 2.5rem;
-            color: #2c3e50;
-            font-weight: bold;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-option {
-            background: #ffffff;
-            border: 2px solid #3498db;
-            color: #3498db;
-            padding: 1rem;
-            font-size: 1.25rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-option:hover {
-            background: #3498db;
-            color: #ffffff;
-        }
-
-        .btn-option.correct {
-            background: #2ecc71;
-            border-color: #2ecc71;
-            color: #ffffff;
-        }
-
-        .btn-option.incorrect {
-            background: #e74c3c;
-            border-color: #e74c3c;
-            color: #ffffff;
-        }
-
-        .feedback {
-            min-height: 24px;
-            font-weight: bold;
-            margin-bottom: 1rem;
-        }
-
-        .feedback.correct-text { color: #2ecc71; }
-        .feedback.incorrect-text { color: #e74c3c; }
-
-        .btn-next {
-            background: #2c3e50;
-            color: #fff;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            font-size: 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            display: none;
-            width: 100%;
-        }
-
-        .btn-next:hover {
-            background: #1a252f;
-        }
-    </style>
+    }
+</style>
 </head>
+
 <body>
 
-    <div class="quiz-card">
-        <div class="header">
-            <span id="score-text">Puntos: 0</span>
-            <span id="progress-text">Pregunta 1/10</span>
+<div class="app">
+
+    <header id="header" style="display:none;">
+        <div class="stats">
+            <div class="stat streak">🔥 <span id="streak">0</span></div>
+            <div class="stat xp">⭐ <span id="xp">0</span> XP</div>
+            <div class="stat hearts">❤️ <span id="hearts">3</span></div>
         </div>
 
-        <div class="question-box">
-            <div class="question-text" id="question">1 × 1 = ?</div>
+        <div class="progress-container">
+            <div class="progress" id="progress"></div>
         </div>
+    </header>
+
+    <!-- INICIO -->
+
+    <section class="start-screen" id="startScreen">
+
+        <div class="logo">⚡</div>
+
+        <h1>MultipliKids</h1>
+
+        <p>
+            Aprende las tablas de multiplicar jugando.
+            ¡Responde preguntas, gana XP y consigue una racha perfecta!
+        </p>
+
+        <h3>Elige una tabla</h3>
+
+        <div class="table-selector" id="tableSelector">
+            <button class="table-btn selected" data-table="random">🎲</button>
+            <button class="table-btn" data-table="2">2</button>
+            <button class="table-btn" data-table="3">3</button>
+            <button class="table-btn" data-table="4">4</button>
+            <button class="table-btn" data-table="5">5</button>
+            <button class="table-btn" data-table="6">6</button>
+            <button class="table-btn" data-table="7">7</button>
+            <button class="table-btn" data-table="8">8</button>
+            <button class="table-btn" data-table="9">9</button>
+            <button class="table-btn" data-table="10">10</button>
+        </div>
+
+        <button class="start-btn" id="startBtn">
+            ¡Empezar! 🚀
+        </button>
+
+    </section>
+
+    <!-- JUEGO -->
+
+    <section class="game" id="game" style="display:none;">
+
+        <div class="level">
+            Nivel <span id="level">1</span>
+        </div>
+
+        <h1>¿Cuánto es?</h1>
+
+        <p class="subtitle">Elige la respuesta correcta</p>
+
+        <div class="question" id="question">
+            2 × 3
+        </div>
+
+        <div class="answers" id="answers"></div>
 
         <div class="feedback" id="feedback"></div>
 
-        <div class="options-grid" id="options-container"></div>
+        <button class="continue" id="continueBtn">
+            Continuar →
+        </button>
 
-        <button class="btn-next" id="next-btn" onclick="nextQuestion()">Siguiente Pregunta</button>
-    </div>
+    </section>
 
-    <script>
-        let score = 0;
-        let currentQuestionIndex = 0;
-        let totalQuestions = 10;
-        let currentAnswer = 0;
+    <!-- RESULTADO -->
 
-        function getRandomInt(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
+    <section class="result" id="result">
+
+        <div class="trophy">🏆</div>
+
+        <h2>¡Lección completada!</h2>
+
+        <div class="result-score">
+            <span id="finalScore">0</span> XP
+        </div>
+
+        <div class="result-info">
+            <div>✅ Correctas: <strong id="correctCount">0</strong></div>
+            <div>❌ Incorrectas: <strong id="wrongCount">0</strong></div>
+            <div>🔥 Racha máxima: <strong id="maxStreak">0</strong></div>
+        </div>
+
+        <button class="restart" id="restartBtn">
+            Jugar otra vez 🔄
+        </button>
+
+    </section>
+
+</div>
+
+<div class="xp-popup" id="xpPopup">+10 XP</div>
+
+<script>
+    const TOTAL_QUESTIONS = 10;
+
+    let selectedTable = "random";
+    let questionNumber = 0;
+    let correct = 0;
+    let wrong = 0;
+    let xp = 0;
+    let streak = 0;
+    let maxStreak = 0;
+    let hearts = 3;
+
+    let currentAnswer = null;
+    let answered = false;
+
+    const startScreen = document.getElementById("startScreen");
+    const game = document.getElementById("game");
+    const result = document.getElementById("result");
+    const header = document.getElementById("header");
+
+    const questionEl = document.getElementById("question");
+    const answersEl = document.getElementById("answers");
+    const feedbackEl = document.getElementById("feedback");
+    const continueBtn = document.getElementById("continueBtn");
+
+    const xpEl = document.getElementById("xp");
+    const heartsEl = document.getElementById("hearts");
+    const streakEl = document.getElementById("streak");
+    const progressEl = document.getElementById("progress");
+    const levelEl = document.getElementById("level");
+
+    /* TABLAS */
+
+    document.querySelectorAll(".table-btn").forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            document.querySelectorAll(".table-btn")
+                .forEach(btn => btn.classList.remove("selected"));
+
+            button.classList.add("selected");
+
+            selectedTable = button.dataset.table;
+        });
+
+    });
+
+    /* INICIAR */
+
+    document.getElementById("startBtn").addEventListener("click", startGame);
+
+    function startGame() {
+
+        questionNumber = 0;
+        correct = 0;
+        wrong = 0;
+        xp = 0;
+        streak = 0;
+        maxStreak = 0;
+        hearts = 3;
+
+        startScreen.style.display = "none";
+        result.classList.remove("show");
+
+        game.style.display = "block";
+        header.style.display = "block";
+
+        updateStats();
+        nextQuestion();
+    }
+
+    /* GENERAR PREGUNTA */
+
+    function nextQuestion() {
+
+        answered = false;
+
+        feedbackEl.className = "feedback";
+        feedbackEl.textContent = "";
+
+        continueBtn.style.display = "none";
+
+        if (questionNumber >= TOTAL_QUESTIONS) {
+            finishGame();
+            return;
         }
 
-        function generateQuestion() {
-            // Generar multiplicaciones únicamente con tablas del 1 al 5
-            const num1 = getRandomInt(1, 5);
-            const num2 = getRandomInt(1, 10);
-            currentAnswer = num1 * num2;
+        questionNumber++;
 
-            document.getElementById('question').textContent = `${num1} × ${num2} = ?`;
+        let a;
+        let b;
 
-            // Generar opciones de respuesta falsas
-            let options = [currentAnswer];
-            while (options.length < 4) {
-                // Alternativas cercanas a la respuesta correcta
-                let offset = getRandomInt(-5, 5);
-                let fakeOption = currentAnswer + offset;
-                
-                if (fakeOption > 0 && !options.includes(fakeOption)) {
-                    options.push(fakeOption);
-                }
+        if (selectedTable === "random") {
+            a = randomNumber(2, 10);
+        } else {
+            a = Number(selectedTable);
+        }
+
+        b = randomNumber(1, 10);
+
+        currentAnswer = a * b;
+
+        questionEl.textContent = `${a} × ${b}`;
+
+        levelEl.textContent = Math.ceil(questionNumber / 3);
+
+        generateAnswers(currentAnswer);
+
+        progressEl.style.width =
+            ((questionNumber - 1) / TOTAL_QUESTIONS * 100) + "%";
+    }
+
+    /* RESPUESTAS */
+
+    function generateAnswers(correctAnswer) {
+
+        let options = new Set();
+
+        options.add(correctAnswer);
+
+        while (options.size < 4) {
+
+            let variation =
+                correctAnswer + randomNumber(-10, 10);
+
+            if (variation > 0) {
+                options.add(variation);
             }
+        }
 
-            // Mezclar las opciones
-            options.sort(() => Math.random() - 0.5);
+        options = [...options];
 
-            // Renderizar botones
-            const optionsContainer = document.getElementById('options-container');
-            optionsContainer.innerHTML = '';
-            
-            options.forEach(option => {
-                const button = document.createElement('button');
-                button.className = 'btn-option';
-                button.textContent = option;
-                button.onclick = () => selectOption(button, option);
-                optionsContainer.appendChild(button);
+        shuffle(options);
+
+        answersEl.innerHTML = "";
+
+        options.forEach(answer => {
+
+            const button = document.createElement("button");
+
+            button.className = "answer";
+            button.textContent = answer;
+
+            button.addEventListener("click", () => {
+                checkAnswer(button, answer);
             });
 
-            document.getElementById('feedback').textContent = '';
-            document.getElementById('feedback').className = 'feedback';
-            document.getElementById('next-btn').style.display = 'none';
-        }
+            answersEl.appendChild(button);
+        });
+    }
 
-        function selectOption(selectedButton, selectedValue) {
-            const buttons = document.querySelectorAll('.btn-option');
-            buttons.forEach(btn => btn.disabled = true); // Bloquear respuestas tras la selección
+    /* COMPROBAR */
 
-            const feedback = document.getElementById('feedback');
+    function checkAnswer(button, answer) {
 
-            if (selectedValue === currentAnswer) {
-                selectedButton.classList.add('correct');
-                feedback.textContent = '¡Correcto! 🎉';
-                feedback.classList.add('correct-text');
-                score += 10;
-                document.getElementById('score-text').textContent = `Puntos: ${score}`;
-            } else {
-                selectedButton.classList.add('incorrect');
-                feedback.textContent = `Incorrecto. La respuesta correcta era ${currentAnswer}`;
-                feedback.classList.add('incorrect-text');
-                
-                // Resaltar la respuesta correcta
-                buttons.forEach(btn => {
-                    if (parseInt(btn.textContent) === currentAnswer) {
-                        btn.classList.add('correct');
-                    }
-                });
+        if (answered) return;
+
+        answered = true;
+
+        const buttons = document.querySelectorAll(".answer");
+
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (answer === currentAnswer) {
+
+            button.classList.add("correct");
+
+            correct++;
+            streak++;
+
+            if (streak > maxStreak) {
+                maxStreak = streak;
             }
 
-            document.getElementById('next-btn').style.display = 'block';
-        }
+            let gainedXP = 10;
 
-        function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < totalQuestions) {
-                document.getElementById('progress-text').textContent = `Pregunta ${currentQuestionIndex + 1}/${totalQuestions}`;
-                generateQuestion();
-            } else {
-                showFinalResults();
+            if (streak >= 3) {
+                gainedXP += 5;
             }
+
+            xp += gainedXP;
+
+            feedbackEl.textContent =
+                streak >= 3
+                ? `🔥 ¡Racha de ${streak}! +${gainedXP} XP`
+                : `🎉 ¡Correcto! +${gainedXP} XP`;
+
+            feedbackEl.className = "feedback show good";
+
+            showXPPopup(gainedXP);
+
+        } else {
+
+            button.classList.add("wrong");
+
+            buttons.forEach(btn => {
+
+                if (Number(btn.textContent) === currentAnswer) {
+                    btn.classList.add("correct");
+                }
+
+            });
+
+            wrong++;
+            streak = 0;
+            hearts--;
+
+            feedbackEl.textContent =
+                `❌ La respuesta correcta era ${currentAnswer}`;
+
+            feedbackEl.className = "feedback show bad";
         }
 
-        function showFinalResults() {
-            const quizCard = document.querySelector('.quiz-card');
-            quizCard.innerHTML = `
-                <h2>¡Juego Terminado! 🏆</h2>
-                <br>
-                <p style="font-size: 1.2rem;">Tu puntuación final es: <strong>${score} de ${totalQuestions * 10} puntos</strong></p>
-                <br>
-                <button class="btn-next" style="display:block;" onclick="location.reload()">Jugar de Nuevo</button>
-            `;
+        updateStats();
+
+        continueBtn.style.display = "block";
+
+        if (hearts <= 0) {
+            continueBtn.textContent = "Ver resultado 🏆";
+        }
+    }
+
+    /* SIGUIENTE */
+
+    continueBtn.addEventListener("click", () => {
+
+        if (hearts <= 0 || questionNumber >= TOTAL_QUESTIONS) {
+            finishGame();
+        } else {
+            nextQuestion();
         }
 
-        // Iniciar el juego
-        generateQuestion();
-    </script>
+    });
+
+    /* FINAL */
+
+    function finishGame() {
+
+        game.style.display = "none";
+        header.style.display = "none";
+
+        result.classList.add("show");
+
+        document.getElementById("finalScore").textContent = xp;
+        document.getElementById("correctCount").textContent = correct;
+        document.getElementById("wrongCount").textContent = wrong;
+        document.getElementById("maxStreak").textContent = maxStreak;
+
+        progressEl.style.width = "100%";
+    }
+
+    /* REINICIAR */
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+
+        result.classList.remove("show");
+        startScreen.style.display = "block";
+
+    });
+
+    /* ESTADÍSTICAS */
+
+    function updateStats() {
+
+        xpEl.textContent = xp;
+        heartsEl.textContent = hearts;
+        streakEl.textContent = streak;
+
+    }
+
+    /* XP */
+
+    function showXPPopup(amount) {
+
+        const popup = document.getElementById("xpPopup");
+
+        popup.textContent = `+${amount} XP`;
+
+        popup.classList.remove("animate");
+
+        void popup.offsetWidth;
+
+        popup.classList.add("animate");
+    }
+
+    /* UTILIDADES */
+
+    function randomNumber(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffle(array) {
+
+        for (let i = array.length - 1; i > 0; i--) {
+
+            const j = Math.floor(Math.random() * (i + 1));
+
+            [array[i], array[j]] =
+                [array[j], array[i]];
+        }
+
+        return array;
+    }
+</script>
 
 </body>
 </html>
