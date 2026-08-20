@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Tablas de Multiplicar (1 al 5)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .quiz-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .question-box {
+            background: #eef2f5;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-text {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-option {
+            background: #ffffff;
+            border: 2px solid #3498db;
+            color: #3498db;
+            padding: 1rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-option:hover {
+            background: #3498db;
+            color: #ffffff;
+        }
+
+        .btn-option.correct {
+            background: #2ecc71;
+            border-color: #2ecc71;
+            color: #ffffff;
+        }
+
+        .btn-option.incorrect {
+            background: #e74c3c;
+            border-color: #e74c3c;
+            color: #ffffff;
+        }
+
+        .feedback {
+            min-height: 24px;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .feedback.correct-text { color: #2ecc71; }
+        .feedback.incorrect-text { color: #e74c3c; }
+
+        .btn-next {
+            background: #2c3e50;
+            color: #fff;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: none;
+            width: 100%;
+        }
+
+        .btn-next:hover {
+            background: #1a252f;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-card">
+        <div class="header">
+            <span id="score-text">Puntos: 0</span>
+            <span id="progress-text">Pregunta 1/10</span>
+        </div>
+
+        <div class="question-box">
+            <div class="question-text" id="question">1 × 1 = ?</div>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <div class="options-grid" id="options-container"></div>
+
+        <button class="btn-next" id="next-btn" onclick="nextQuestion()">Siguiente Pregunta</button>
+    </div>
+
+    <script>
+        let score = 0;
+        let currentQuestionIndex = 0;
+        let totalQuestions = 10;
+        let currentAnswer = 0;
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateQuestion() {
+            // Generar multiplicaciones únicamente con tablas del 1 al 5
+            const num1 = getRandomInt(1, 5);
+            const num2 = getRandomInt(1, 10);
+            currentAnswer = num1 * num2;
+
+            document.getElementById('question').textContent = `${num1} × ${num2} = ?`;
+
+            // Generar opciones de respuesta falsas
+            let options = [currentAnswer];
+            while (options.length < 4) {
+                // Alternativas cercanas a la respuesta correcta
+                let offset = getRandomInt(-5, 5);
+                let fakeOption = currentAnswer + offset;
+                
+                if (fakeOption > 0 && !options.includes(fakeOption)) {
+                    options.push(fakeOption);
+                }
+            }
+
+            // Mezclar las opciones
+            options.sort(() => Math.random() - 0.5);
+
+            // Renderizar botones
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'btn-option';
+                button.textContent = option;
+                button.onclick = () => selectOption(button, option);
+                optionsContainer.appendChild(button);
+            });
+
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+            document.getElementById('next-btn').style.display = 'none';
+        }
+
+        function selectOption(selectedButton, selectedValue) {
+            const buttons = document.querySelectorAll('.btn-option');
+            buttons.forEach(btn => btn.disabled = true); // Bloquear respuestas tras la selección
+
+            const feedback = document.getElementById('feedback');
+
+            if (selectedValue === currentAnswer) {
+                selectedButton.classList.add('correct');
+                feedback.textContent = '¡Correcto! 🎉';
+                feedback.classList.add('correct-text');
+                score += 10;
+                document.getElementById('score-text').textContent = `Puntos: ${score}`;
+            } else {
+                selectedButton.classList.add('incorrect');
+                feedback.textContent = `Incorrecto. La respuesta correcta era ${currentAnswer}`;
+                feedback.classList.add('incorrect-text');
+                
+                // Resaltar la respuesta correcta
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === currentAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < totalQuestions) {
+                document.getElementById('progress-text').textContent = `Pregunta ${currentQuestionIndex + 1}/${totalQuestions}`;
+                generateQuestion();
+            } else {
+                showFinalResults();
+            }
+        }
+
+        function showFinalResults() {
+            const quizCard = document.querySelector('.quiz-card');
+            quizCard.innerHTML = `
+                <h2>¡Juego Terminado! 🏆</h2>
+                <br>
+                <p style="font-size: 1.2rem;">Tu puntuación final es: <strong>${score} de ${totalQuestions * 10} puntos</strong></p>
+                <br>
+                <button class="btn-next" style="display:block;" onclick="location.reload()">Jugar de Nuevo</button>
+            `;
+        }
+
+        // Iniciar el juego
+        generateQuestion();
+    </script>
+
+</body>
+</html>
